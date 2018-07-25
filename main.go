@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/jigtools/tail/drivers/elastic"
 
 	"github.com/integrii/flaggy"
@@ -8,6 +10,7 @@ import (
 
 // make a variable for the version which will be set at build time
 var version = "development build"
+var connectionString = "http://localhost:9200"
 
 func init() {
 	// Set your program's name and description, if you want to.
@@ -23,9 +26,12 @@ func init() {
 
 	// set the version and parse
 	flaggy.SetVersion(version)
+
+	flaggy.String(&connectionString, "c", "connect", fmt.Sprintf("Elasticsearch connection string, defaults to %s", connectionString))
+
 	flaggy.Parse()
 }
 
 func main() {
-	elastic.Connect()
+	elastic.Connect(connectionString)
 }
