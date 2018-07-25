@@ -27,11 +27,22 @@ func init() {
 	// set the version and parse
 	flaggy.SetVersion(version)
 
+	// Global flags
 	flaggy.String(&connectionString, "c", "connect", fmt.Sprintf("Elasticsearch connection string, defaults to %s", connectionString))
 
+	// ls - Show Indexes
+	showIndexes := flaggy.NewSubcommand("ls")
+	flaggy.AttachSubcommand(showIndexes, 1)
+
 	flaggy.Parse()
+
+	if showIndexes.Used {
+		elastic.List(connectionString)
+	} else {
+		elastic.Connect(connectionString)
+	}
 }
 
 func main() {
-	elastic.Connect(connectionString)
+	println("Done.")
 }

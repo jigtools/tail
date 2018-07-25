@@ -9,7 +9,7 @@ import (
 )
 
 // Connect to the elastic search
-func Connect(connectionString string) {
+func Connect(connectionString string) *elastic.Client {
 	// Starting with elastic.v5, you must pass a context to execute each service
 	ctx := context.Background()
 
@@ -43,7 +43,19 @@ func Connect(connectionString string) {
 		panic(err)
 	}
 	fmt.Printf("Elasticsearch version %s\n", esversion)
+	return client
+}
 
+// List Indexes
+func List(connectionString string) {
+	client := Connect(connectionString)
+	if client != nil {
+		list(client)
+	}
+}
+
+// List indexes
+func list(client *elastic.Client) {
 	names, err := client.IndexNames()
 	if err != nil {
 		// Handle error
