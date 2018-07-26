@@ -31,6 +31,7 @@ func init() {
 
 	// Global flags
 	flaggy.String(&connectionString, "c", "connect", fmt.Sprintf("Elasticsearch connection string, defaults to %s", connectionString))
+	flaggy.String(&index, "i", "index", fmt.Sprintf("Index name / filter, defaults to %s", index))
 	flaggy.String(&format, "f", "format", fmt.Sprintf("Format output using space separated key names, defaults to %s (set to * to see all fields)", format))
 
 	// ls - Show Indexes
