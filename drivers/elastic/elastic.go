@@ -64,7 +64,7 @@ func List(connectionString string) {
 }
 
 // Tail from indexes
-func Tail(connectionString, index, format string) {
+func Tail(connectionString, index, format, timestampField string) {
 	fmt.Printf("Connecting to %s: index %s, format: %s\n", connectionString, index, format)
 	ctx := context.Background()
 	initialLogCount := 20 // get 20 log entries initially
@@ -74,17 +74,19 @@ func Tail(connectionString, index, format string) {
 		searchResult, err := client.Search().
 			Index(index). // search in index "twitter"
 			//Query(termQuery).   // specify the query
-			Sort("@timestamp", false).
+			Sort(timestampField, false).
 			From(0).Size(initialLogCount). // take documents 0-9
 			Pretty(true).                  // pretty print request and response JSON
 			Do(ctx)                        // execute
 		if err != nil {
+			// TODO: if not found, and no wildcard, add it - ie `--index infra` becomes `--index infra*`
 			// Handle error
 			panic(err)
 		}
 		// Iterate through results
-		for _, hit := range searchResult.Hits.Hits {
-			fmt.Println(formatHit(format, hit))
+		//for _, hit := range searchResult.Hits.Hits {
+		for i := len(searchResult.Hits.Hits) - 1; i >= 0; i-- {
+			fmt.Println(formatHit(format, searchResult.Hits.Hits[i]))
 		}
 	}
 }

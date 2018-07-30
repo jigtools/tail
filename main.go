@@ -13,6 +13,7 @@ var version = "development build"
 var connectionString = "http://localhost:9200"
 var index = "sima-ncwps-*"
 var format = "@timestamp log"
+var timestampField = "@timestamp"
 
 func init() {
 	// Set your program's name and description, if you want to.
@@ -47,7 +48,7 @@ func init() {
 	}
 
 	// Default
-	elastic.Tail(connectionString, index, format)
+	elastic.Tail(connectionString, index, format, timestampField)
 }
 
 func main() {
