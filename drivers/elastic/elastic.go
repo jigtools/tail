@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -88,30 +89,40 @@ func printHits(ctx context.Context, hits chan *elastic.SearchHit, format string)
 var initialLogCount = 20
 
 func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString, index, timestampField string) error {
-	//for {
 	client := Connect(connectionString)
 	if client != nil {
-		searchResult, err := client.Search().
-			Index(index). // search in index "twitter"
+		// searchResult, err := client.Search().
+		// 	Index(index). // search in index "twitter"
+		// 	//Query(termQuery).   // specify the query
+		// 	Sort(timestampField, false).
+		// 	From(0).Size(initialLogCount). // take documents 0-9
+		// 	Pretty(true).                  // pretty print request and response JSON
+		// 	Do(ctx)                        // execute
+		scroll := client.Scroll(index).
 			//Query(termQuery).   // specify the query
-			Sort(timestampField, false).
-			From(0).Size(initialLogCount). // take documents 0-9
-			Pretty(true).                  // pretty print request and response JSON
-			Do(ctx)                        // execute
-		if err != nil {
-			// TODO: if not found, and no wildcard, add it - ie `--index infra` becomes `--index infra*`
-			// Handle error
-			return err
-		}
-		for i := len(searchResult.Hits.Hits) - 1; i >= 0; i-- {
-			select {
-			case hits <- searchResult.Hits.Hits[i]:
-			case <-ctx.Done():
-				return ctx.Err()
+			//Sort(timestampField, false).
+			//From(0).
+			Size(initialLogCount). // take documents 0-9
+			Pretty(true)
+		for {
+			results, err := scroll.Do(ctx)
+			if err == io.EOF {
+				return nil // all results retrieved
+			}
+			if err != nil {
+				// TODO: if not found, and no wildcard, add it - ie `--index infra` becomes `--index infra*`
+				// Handle error
+				return err
+			}
+			for i := len(results.Hits.Hits) - 1; i >= 0; i-- {
+				select {
+				case hits <- results.Hits.Hits[i]:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
 			}
 		}
 	}
-	//}
 	return nil
 }
 
