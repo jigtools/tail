@@ -34,6 +34,18 @@
   version = "v0.8.0"
 
 [[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  revision = "c4299a1a0d8524c11563db160fbf9bddbceadb21"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sync"
+  packages = ["errgroup"]
+  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
+
+[[projects]]
   name = "gopkg.in/olivere/elastic.v5"
   packages = [
     ".",
@@ -46,6 +58,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b939abadb9c9bbe81e0180fca9487495a0755b9229a09f4133282a9a4a0d3ab8"
+  inputs-digest = "293d77ddea9ebb543ed1e090e52cfdad86570de2d7679c9a10fad3b228b51eae"
   solver-name = "gps-cdcl"
   solver-version = 1

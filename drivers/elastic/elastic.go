@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	elastic "gopkg.in/olivere/elastic.v5"
 )
 
@@ -67,8 +69,26 @@ func List(connectionString string) {
 func Tail(connectionString, index, format, timestampField string) {
 	fmt.Printf("Connecting to %s: index %s, format: %s\n", connectionString, index, format)
 	ctx := context.Background()
-	initialLogCount := 20 // get 20 log entries initially
+	hits := make(chan *elastic.SearchHit)
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error { return getHits(ctx, hits, connectionString, index, timestampField) })
+	g.Go(func() error { return printHits(ctx, hits, format) })
+	if err := g.Wait(); err != nil {
+		panic(err)
+	}
+}
 
+func printHits(ctx context.Context, hits chan *elastic.SearchHit, format string) error {
+	for hit := range hits {
+		fmt.Println(formatHit(format, hit))
+	}
+	return nil
+}
+
+var initialLogCount = 20
+
+func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString, index, timestampField string) error {
+	//for {
 	client := Connect(connectionString)
 	if client != nil {
 		searchResult, err := client.Search().
@@ -81,14 +101,18 @@ func Tail(connectionString, index, format, timestampField string) {
 		if err != nil {
 			// TODO: if not found, and no wildcard, add it - ie `--index infra` becomes `--index infra*`
 			// Handle error
-			panic(err)
+			return err
 		}
-		// Iterate through results
-		//for _, hit := range searchResult.Hits.Hits {
 		for i := len(searchResult.Hits.Hits) - 1; i >= 0; i-- {
-			fmt.Println(formatHit(format, searchResult.Hits.Hits[i]))
+			select {
+			case hits <- searchResult.Hits.Hits[i]:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
 	}
+	//}
+	return nil
 }
 
 func formatHit(format string, hit *elastic.SearchHit) string {
