@@ -148,13 +148,15 @@ func formatHit(timestampField, format string, hit *elastic.SearchHit) string {
 		return err.Error()
 	}
 
-	ts := entry[timestampField].(string)
-	if strings.Compare(lastTime, ts) > 0 {
-		//return fmt.Sprintf("%s is before %s", ts, lastTime)
-		return ""
-	}
-	if strings.Compare(lastTime, ts) < 0 {
-		lastTime = ts
+	if entry[timestampField] != nil {
+		ts := entry[timestampField].(string)
+		if strings.Compare(lastTime, ts) > 0 {
+			//return fmt.Sprintf("%s is before %s", ts, lastTime)
+			return ""
+		}
+		if strings.Compare(lastTime, ts) < 0 {
+			lastTime = ts
+		}
 	}
 
 	if format == "*" {
