@@ -73,15 +73,18 @@ func Tail(connectionString, index, format, timestampField string) {
 	hits := make(chan *elastic.SearchHit)
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error { return getHits(ctx, hits, connectionString, index, timestampField) })
-	g.Go(func() error { return printHits(ctx, hits, format) })
+	g.Go(func() error { return printHits(ctx, hits, timestampField, format) })
 	if err := g.Wait(); err != nil {
 		panic(err)
 	}
 }
 
-func printHits(ctx context.Context, hits chan *elastic.SearchHit, format string) error {
+func printHits(ctx context.Context, hits chan *elastic.SearchHit, timestampField, format string) error {
 	for hit := range hits {
-		fmt.Println(formatHit(format, hit))
+		str := formatHit(timestampField, format, hit)
+		if str != "" {
+			fmt.Println(str)
+		}
 	}
 	return nil
 }
@@ -102,40 +105,62 @@ func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString
 			//Query(termQuery).   // specify the query
 			//Sort(timestampField, false).
 			//From(0).
-			Size(initialLogCount). // take documents 0-9
-			Pretty(true)
+			Size(initialLogCount) // take documents 0-9
+			//Pretty(true)
+		delay := 500 * time.Millisecond
 		for {
 			results, err := scroll.Do(ctx)
 			if err == io.EOF {
-				return nil // all results retrieved
+				panic(err)
+				//return nil // all results retrieved
 			}
 			if err != nil {
 				// TODO: if not found, and no wildcard, add it - ie `--index infra` becomes `--index infra*`
 				// Handle error
-				return err
+				panic(err)
+
+				//return err
 			}
+
 			for i := len(results.Hits.Hits) - 1; i >= 0; i-- {
 				select {
 				case hits <- results.Hits.Hits[i]:
+					//fmt.Printf("got %d\n", i)
 				case <-ctx.Done():
-					return ctx.Err()
+					panic(ctx.Err())
+
+					//return ctx.Err()
 				}
 			}
+			time.Sleep(delay)
 		}
 	}
 	return nil
 }
 
-func formatHit(format string, hit *elastic.SearchHit) string {
-	if format == "*" {
-		return string(*hit.Source)
-	}
+var lastTime = ""
+
+func formatHit(timestampField, format string, hit *elastic.SearchHit) string {
 	// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
 	var entry map[string]interface{}
 	err := json.Unmarshal(*hit.Source, &entry)
 	if err != nil {
 		return err.Error()
 	}
+
+	ts := entry[timestampField].(string)
+	if strings.Compare(lastTime, ts) > 0 {
+		//return fmt.Sprintf("%s is before %s", ts, lastTime)
+		return ""
+	}
+	if strings.Compare(lastTime, ts) < 0 {
+		lastTime = ts
+	}
+
+	if format == "*" {
+		return fmt.Sprintf("%s: %v", hit.Index, entry)
+	}
+
 	// TODO: expand to more than one key
 	keys := strings.Split(format, " ")
 	for i, k := range keys {
