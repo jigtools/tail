@@ -133,6 +133,7 @@ func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString
 					//return ctx.Err()
 				}
 			}
+			scroll.Clear(ctx)
 			time.Sleep(delay)
 		}
 	}
