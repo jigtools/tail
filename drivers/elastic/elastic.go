@@ -101,17 +101,19 @@ func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString
 		// 	From(0).Size(initialLogCount). // take documents 0-9
 		// 	Pretty(true).                  // pretty print request and response JSON
 		// 	Do(ctx)                        // execute
+	ReQuery:
 		scroll := client.Scroll(index).
 			//Query(termQuery).   // specify the query
 			//Sort(timestampField, false).
 			//From(0).
 			Size(initialLogCount) // take documents 0-9
 			//Pretty(true)
-		delay := 500 * time.Millisecond
+		delay := 50 * time.Millisecond
 		for {
 			results, err := scroll.Do(ctx)
 			if err == io.EOF {
-				panic(err)
+				goto ReQuery
+				//panic(err)
 				//return nil // all results retrieved
 			}
 			if err != nil {
