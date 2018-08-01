@@ -104,7 +104,7 @@ func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString
 	ReQuery:
 		scroll := client.Scroll(index).
 			//Query(termQuery).   // specify the query
-			//Sort(timestampField, false).
+			Sort(timestampField, false).
 			//From(0).
 			Size(initialLogCount) // take documents 0-9
 			//Pretty(true)
