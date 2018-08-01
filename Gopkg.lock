@@ -3,61 +3,79 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:315c5f2f60c76d89b871c73f9bd5fe689cad96597afd50fb9992228ef80bdd34"
   name = "github.com/alecthomas/template"
   packages = [
     ".",
-    "parse"
+    "parse",
   ]
+  pruneopts = "UT"
   revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
 
 [[projects]]
   branch = "master"
+  digest = "1:9f2a6c668fe63bb2d2925a9580c25d2de9a1b8cb77a6a5240f6b122cd995bd51"
   name = "github.com/integrii/flaggy"
   packages = ["."]
+  pruneopts = "UT"
   revision = "edaf7a3804f8833441472b9462f4804cefcfc650"
 
 [[projects]]
   branch = "master"
+  digest = "1:4429b79947e9af3ccf562cdde4ca61934c7e229726a5afd6527151a91f636a5d"
   name = "github.com/mailru/easyjson"
   packages = [
     ".",
     "buffer",
     "jlexer",
-    "jwriter"
+    "jwriter",
   ]
+  pruneopts = "UT"
   revision = "d5012789d6659eeed305f54c1b1542e7b65829e6"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
   name = "golang.org/x/net"
   packages = ["context"]
+  pruneopts = "UT"
   revision = "c4299a1a0d8524c11563db160fbf9bddbceadb21"
 
 [[projects]]
   branch = "master"
+  digest = "1:39ebcc2b11457b703ae9ee2e8cca0f68df21969c6102cb3b705f76cca0ea0239"
   name = "golang.org/x/sync"
   packages = ["errgroup"]
+  pruneopts = "UT"
   revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
+  digest = "1:4448b4b6b0db938f045be61c9b4b61009f2db5cdb4d3ae20e28d234f7c0b7b6a"
   name = "gopkg.in/olivere/elastic.v5"
   packages = [
     ".",
     "config",
-    "uritemplates"
+    "uritemplates",
   ]
+  pruneopts = "UT"
   revision = "52741dc2ce53629cbe1e673869040d886cba2cd5"
   version = "v5.0.70"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "293d77ddea9ebb543ed1e090e52cfdad86570de2d7679c9a10fad3b228b51eae"
+  input-imports = [
+    "github.com/integrii/flaggy",
+    "golang.org/x/sync/errgroup",
+    "gopkg.in/olivere/elastic.v5",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
