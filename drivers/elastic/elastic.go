@@ -89,7 +89,7 @@ func printHits(ctx context.Context, hits chan *elastic.SearchHit, timestampField
 	return nil
 }
 
-var initialLogCount = 20
+var initialLogCount = 33
 
 func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString, index, timestampField string) error {
 	client := Connect(connectionString)
@@ -101,18 +101,17 @@ func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString
 		// 	From(0).Size(initialLogCount). // take documents 0-9
 		// 	Pretty(true).                  // pretty print request and response JSON
 		// 	Do(ctx)                        // execute
-	ReQuery:
-		scroll := client.Scroll(index).
-			//Query(termQuery).   // specify the query
-			Sort(timestampField, false).
-			//From(0).
-			Size(initialLogCount) // take documents 0-9
-			//Pretty(true)
 		delay := 50 * time.Millisecond
 		for {
+			scroll := client.Scroll(index).
+				//Query(termQuery).   // specify the query
+				Sort(timestampField, false).
+				//From(0).
+				Size(initialLogCount) // take documents 0-9
+			//Pretty(true)
 			results, err := scroll.Do(ctx)
 			if err == io.EOF {
-				goto ReQuery
+				break
 				//panic(err)
 				//return nil // all results retrieved
 			}
@@ -141,6 +140,7 @@ func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString
 }
 
 var lastTime = ""
+var lastHit = ""
 
 func formatHit(timestampField, format string, hit *elastic.SearchHit) string {
 	// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
@@ -160,6 +160,12 @@ func formatHit(timestampField, format string, hit *elastic.SearchHit) string {
 			lastTime = ts
 		}
 	}
+
+	sHit := fmt.Sprintf("%v", *hit.Source)
+	if sHit == lastHit {
+		return ""
+	}
+	lastHit = sHit
 
 	if format == "*" {
 		return fmt.Sprintf("%s: %v", hit.Index, entry)
