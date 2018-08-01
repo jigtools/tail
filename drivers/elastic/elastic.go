@@ -103,52 +103,38 @@ func getHits(ctx context.Context, hits chan *elastic.SearchHit, connectionString
 		// 	Do(ctx)                        // execute
 		delay := 50 * time.Millisecond
 		var scroll *elastic.ScrollService
-	ReQuery:
-		if scroll != nil {
-			scroll.Clear(ctx)
-		}
-		fmt.Println("------------------------------")
-		scroll = client.Scroll(index).
-			//Query(termQuery).   // specify the query
-			Sort(timestampField, false).
-			//From(0).
-			Size(initialLogCount) // take documents 0-9
-		//Pretty(true)
 		for {
-			fmt.Println("1")
+			if scroll != nil {
+				scroll.Clear(ctx)
+			}
+			scroll = client.Scroll(index).
+				//Query(termQuery).   // specify the query
+				Sort(timestampField, false).
+				//From(0).
+				Size(initialLogCount) // take documents 0-9
+				//Pretty(true)
+				//for {
 			results, err := scroll.Do(ctx)
-			fmt.Println("2")
 			if err == io.EOF {
-				fmt.Println("3")
-				goto ReQuery
-				//break
-				//panic(err)
-				//return nil // all results retrieved
+				// TODO: unfortuanatly, atm, EOF doesn't seem to get triggered on Windows
+				break // all results retrieved
 			}
 			if err != nil {
-				fmt.Println("4")
 				// TODO: if not found, and no wildcard, add it - ie `--index infra` becomes `--index infra*`
 				// Handle error
 				panic(err)
-
-				//return err
 			}
 
-			fmt.Println("5")
 			for i := len(results.Hits.Hits) - 1; i >= 0; i-- {
-				fmt.Println("A")
 				select {
 				case hits <- results.Hits.Hits[i]:
-					fmt.Println("6")
 					//fmt.Printf("got %d\n", i)
 				case <-ctx.Done():
-					fmt.Println("7")
 					panic(ctx.Err())
 
 					//return ctx.Err()
 				}
 			}
-			fmt.Println("8")
 			time.Sleep(delay)
 		}
 	}
