@@ -11,7 +11,7 @@ import (
 // make a variable for the version which will be set at build time
 var version = "development build"
 var connectionString = "http://localhost:9200"
-var index = "sima-ncwps-*"
+var index = "*"
 var format = "@timestamp log"
 var timestampField = "@timestamp"
 
@@ -35,9 +35,12 @@ func init() {
 	flaggy.String(&index, "i", "index", fmt.Sprintf("Index name / filter, defaults to %s", index))
 	flaggy.String(&format, "f", "format", fmt.Sprintf("Format output using space separated key names, defaults to %s (set to * to see all fields)", format))
 
+	cmdPosition := 0
+
+	cmdPosition = cmdPosition + 1
 	// ls - Show Indexes
 	showIndexes := flaggy.NewSubcommand("ls")
-	flaggy.AttachSubcommand(showIndexes, 1)
+	flaggy.AttachSubcommand(showIndexes, cmdPosition)
 
 	flaggy.Parse()
 
